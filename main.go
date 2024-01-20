@@ -3,12 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/joho/godotenv"
+	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 const (
@@ -58,6 +61,48 @@ type PhotoSource struct {
 	Tiny      string `json:"tiny"`
 }
 
+func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, error) {
+	url := fmt.Sprint(PHOTO_API+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
+
+	res, err := c.requestDoWithAuth("GET", url)
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result SearchResult
+
+	err = json.Unmarshal(data, &result)
+
+	return &result, err
+}
+
+func (c *Client) requestDoWithAuth(method, url string) (*http.Response, error) {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", c.Token)
+
+	res, err := c.hc.Do(req)
+	if err != nil {
+		return res, err
+	}
+
+	times, err := strconv.Atoi(res.Header.Get("X-Ratelimit-Remaining"))
+	if err != nil {
+		return res, nil
+	} else {
+		c.RemainingTimes = int32(times)
+	}
+
+	return res, nil
+}
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -68,7 +113,7 @@ func main() {
 
 	var c = NewClient(TOKEN)
 
-	result, err := c.SearchPhotos("waves")
+	result, err := c.SearchPhotos("waves", 15, 1)
 	if err != nil {
 		fmt.Errorf("Search Error: %v", err)
 	}
