@@ -135,6 +135,28 @@ func (c *Client) requestDoWithAuth(method, url string) (*http.Response, error) {
 	return res, nil
 }
 
+func (c *Client) GetPhotoById(id int32) (*Photo, error) {
+	url := fmt.Sprintf(PHOTO_API+"/photos/%d", id)
+
+	res, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result Photo
+
+	err = json.Unmarshal(data, &result)
+
+	return &result, err
+}
+
 func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
