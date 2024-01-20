@@ -61,10 +61,20 @@ type PhotoSource struct {
 	Tiny      string `json:"tiny"`
 }
 
+type curatedResult struct {
+	Page     int32   `json:"page"`
+	PerPage  int32   `json:"per_page"`
+	NextPage string  `json:"next_page"`
+	Photos   []Photo `json:"photos"`
+}
+
 func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, error) {
 	url := fmt.Sprint(PHOTO_API+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
 
 	res, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
 
 	defer res.Body.Close()
 
@@ -74,6 +84,28 @@ func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, e
 	}
 
 	var result SearchResult
+
+	err = json.Unmarshal(data, &result)
+
+	return &result, err
+}
+
+func (c *Client) curatedPhotos(perPage, page int) (*curatedResult, error) {
+	url := fmt.Sprintf(PHOTO_API+"/curated?per_page=%d&page=%d", perPage, page)
+
+	res, err := c.requestDoWithAuth("GET", url)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	data, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result curatedResult
 
 	err = json.Unmarshal(data, &result)
 
