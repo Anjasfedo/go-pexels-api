@@ -68,6 +68,26 @@ type curatedResult struct {
 	Photos   []Photo `json:"photos"`
 }
 
+type VideoSearchResult struct {
+
+}
+
+type Video struct {
+
+}
+
+type PopularVideos struct {
+
+}
+
+type VideoFiles struct {
+
+}
+
+type VideoPictures struct {
+	
+}
+
 func (c *Client) SearchPhotos(query string, perPage, page int) (*SearchResult, error) {
 	url := fmt.Sprint(PHOTO_API+"/search?query=%s&per_page=%d&page=%d", query, perPage, page)
 
@@ -168,6 +188,18 @@ func (c *Client) GetRandomPhoto() (*Photo, error) {
 	}
 
 	return nil, err
+}
+
+func (c *Client) SearchVideo(query, perPage, page int) (*VideoSearchResult, error) {
+
+}
+
+func (c *Client) PopularVideo(perPage, page int) (*PopularVideos, error) {
+
+}
+
+func (c *Client) GetRandomVideo() (*Video, error) {
+
 }
 
 func main() {
