@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
 	"time"
@@ -155,6 +155,19 @@ func (c *Client) GetPhotoById(id int32) (*Photo, error) {
 	err = json.Unmarshal(data, &result)
 
 	return &result, err
+}
+
+func (c *Client) GetRandomPhoto() (*Photo, error) {
+	rand.Seed(time.Now().Unix())
+
+	randNum := rand.Intn(1001)
+
+	result, err := c.curatedPhotos(1, randNum)
+	if err == nil && len(result.Photos) == 1 {
+		return &result.Photos[0], nil
+	}
+
+	return nil, err
 }
 
 func main() {
